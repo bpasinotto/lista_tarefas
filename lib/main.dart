@@ -138,7 +138,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.blue,
         child: Icon(Icons.add),
       ),
-      bottomNavigationBar: PwaInstallButton(),
+      // bottomNavigationBar: PwaInstallButton(),
     );
   }
 }
