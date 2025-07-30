@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/item.dart';
+import 'pwa_install_button.dart';
 
 void main() => runApp(App());
 
@@ -137,6 +138,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.blue,
         child: Icon(Icons.add),
       ),
+      bottomNavigationBar: PwaInstallButton(),
     );
   }
 }
