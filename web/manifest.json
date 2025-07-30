@@ -1,6 +1,6 @@
 {
-    "name": "lista_tarefas",
-    "short_name": "lista_tarefas",
+    "name": "Lista Tarefas",
+    "short_name": "Tarefas",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
