@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Uma lista de tarefas simples e eficiente.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
@@ -31,5 +31,8 @@
             "type": "image/png",
             "purpose": "maskable"
         }
+    ],
+    "permissions": [
+        "notifications"
     ]
 }

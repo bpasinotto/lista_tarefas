@@ -1,6 +1,13 @@
 import 'dart:convert';
+import 'dart:html' as html;
+import 'dart:js' as js;
+import 'dart:async'; // Adicione esta linha
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 import 'models/item.dart';
 
 void main() => runApp(App());
@@ -32,6 +39,155 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   var newTaskCtrl = TextEditingController();
   List<Item> items = [];
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  @override
+  void initState() {
+    super.initState();
+    if (!kIsWeb) {
+      tz.initializeTimeZones();
+      _initializeNotifications();
+    } else {
+      _initializePWANotifications();
+    }
+    load();
+  }
+
+  // Inicialização para PWA
+  void _initializePWANotifications() async {
+    if (kIsWeb) {
+      // Solicitar permissão para notificações
+      String permission = await html.Notification.requestPermission();
+      print('Permissão de notificação: $permission');
+    }
+  }
+
+  // Inicialização para Android/iOS (existente)
+  void _initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
+
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) async {
+        print('Notificação tocada: ${response.payload}');
+      },
+    );
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.requestNotificationsPermission();
+  }
+
+  // Agendamento para PWA
+  Future<void> _schedulePWANotification(TimeOfDay time) async {
+    final now = DateTime.now();
+    var scheduledDate = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
+    final delay = scheduledDate.difference(now).inMilliseconds;
+    final uncompletedCount = items.where((item) => !item.done).length;
+
+    // Usar Service Worker para notificações persistentes
+    if (js.context.hasProperty('navigator') &&
+        js.context['navigator'].hasProperty('serviceWorker')) {
+      js.context.callMethod('eval', [
+        '''
+        if ('serviceWorker' in navigator && 'Notification' in window) {
+          navigator.serviceWorker.ready.then(function(registration) {
+            registration.active.postMessage({
+              type: 'SCHEDULE_NOTIFICATION',
+              title: 'Tarefas Pendentes',
+              body: 'Você tem $uncompletedCount tarefas não concluídas para verificar!',
+              delay: $delay
+            });
+          });
+        }
+      ''',
+      ]);
+    } else {
+      // Fallback para Timer simples
+      Timer(Duration(milliseconds: delay), () {
+        if (html.Notification.permission == 'granted') {
+          html.Notification(
+            'Tarefas Pendentes',
+            body:
+                'Você tem $uncompletedCount tarefas não concluídas para verificar!',
+            icon: '/icons/Icon-192.png',
+          );
+        }
+      });
+    }
+  }
+
+  // Agendamento para Android/iOS (existente)
+  Future<void> _scheduleNotification(TimeOfDay time) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+          'tarefas_channel',
+          'Lembretes de Tarefas',
+          channelDescription: 'Notificações para lembrar das tarefas pendentes',
+          importance: Importance.max,
+          priority: Priority.high,
+          showWhen: false,
+          playSound: true,
+          enableVibration: true,
+        );
+
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+    );
+
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduledDate = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      0,
+      'Tarefas Pendentes',
+      'Você tem ${items.where((item) => !item.done).length} tarefas não concluídas para verificar!',
+      scheduledDate,
+      platformChannelSpecifics,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: 'tarefas_pendentes',
+    );
+  }
+
+  // Função unificada para agendamento
+  Future<void> _scheduleNotificationPlatform(TimeOfDay time) async {
+    if (kIsWeb) {
+      await _schedulePWANotification(time);
+    } else {
+      await _scheduleNotification(time);
+    }
+  }
 
   void add() {
     if (newTaskCtrl.text.isEmpty) {
@@ -76,12 +232,6 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       print('Erro ao salvar: $e');
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    load();
   }
 
   @override
@@ -138,6 +288,65 @@ class _HomePageState extends State<HomePage> {
         onPressed: add,
         backgroundColor: Colors.blue,
         child: Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        height: 60,
+        color: Colors.blue,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              onPressed: () async {
+                TimeOfDay? selectedTime = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.now(),
+                  helpText:
+                      'Selecione um horário para ser lembrado das tarefas',
+                  builder: (BuildContext context, Widget? child) {
+                    return MediaQuery(
+                      data: MediaQuery.of(
+                        context,
+                      ).copyWith(alwaysUse24HourFormat: true),
+                      child: child!,
+                    );
+                  },
+                );
+
+                if (selectedTime != null) {
+                  String formattedTime =
+                      '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}';
+                  print('Hora selecionada: $formattedTime');
+
+                  bool hasUncompletedTasks = items.any((item) => !item.done);
+
+                  if (hasUncompletedTasks) {
+                    // Usar função unificada
+                    await _scheduleNotificationPlatform(selectedTime);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Notificação agendada para $formattedTime',
+                        ),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Todas as tarefas estão concluídas!'),
+                        backgroundColor: Colors.blue,
+                      ),
+                    );
+                  }
+                }
+              },
+              icon: Icon(Icons.access_time),
+              iconSize: 30,
+              color: Colors.white,
+            ),
+          ],
+        ),
       ),
     );
   }
