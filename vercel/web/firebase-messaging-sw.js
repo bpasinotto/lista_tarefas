@@ -1,25 +1,22 @@
-console.log('🚀 Service Worker carregado no:', self.location.href);
-
 self.addEventListener('install', function (event) {
-    console.log('📦 Service Worker instalado');
+    console.log('Service Worker instalado');
     self.skipWaiting();
 });
 
 self.addEventListener('activate', function (event) {
-    console.log('✅ Service Worker ativado');
+    console.log('Service Worker ativado');
     event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener('message', function (event) {
-    console.log('📨 Mensagem recebida no SW:', event.data);
+    console.log('Mensagem recebida no SW:', event.data);
 
     if (event.data && event.data.type === 'SCHEDULE_NOTIFICATION') {
         const { title, body, delay } = event.data;
 
-        console.log('⏰ Agendando notificação para', delay, 'ms');
+        console.log('Agendando notificação para', delay, 'ms');
 
         setTimeout(() => {
-            console.log('🔔 Exibindo notificação:', title);
             self.registration.showNotification(title, {
                 body: body,
                 icon: '/icons/Icon-192.png',
@@ -33,7 +30,10 @@ self.addEventListener('message', function (event) {
 });
 
 self.addEventListener('notificationclick', function (event) {
-    console.log('👆 Notificação clicada');
+    console.log('Notificação clicada');
     event.notification.close();
-    event.waitUntil(clients.openWindow('/'));
+
+    event.waitUntil(
+        clients.openWindow('/')
+    );
 });

@@ -34,7 +34,7 @@
   <link rel="manifest" href="manifest.json">
 
   <script>
-    const serviceWorkerVersion = "2484496379";
+    const serviceWorkerVersion = "192907590";
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
@@ -44,33 +44,20 @@
   <div id="loading"></div>
 
   <script>
-    // Registrar service worker customizado
+    // Primeiro registrar nosso service worker customizado
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function () {
-        // Usar caminho absoluto para produção
-        const swPath = window.location.origin + '/firebase-messaging-sw.js';
-
-        navigator.serviceWorker.register(swPath, {
-          scope: '/'
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then(function (registration) {
+          console.log('Firebase Service Worker registrado:', registration.scope);
         })
-          .then(function (registration) {
-            console.log('✅ Firebase Service Worker registrado:', registration.scope);
-
-            // Verificar se está ativo
-            if (registration.active) {
-              console.log('✅ SW está ativo');
-            } else {
-              console.log('⏳ SW ainda não está ativo');
-            }
-          })
-          .catch(function (err) {
-            console.error('❌ Erro ao registrar Firebase Service Worker:', err);
-          });
-      });
+        .catch(function (err) {
+          console.log('Erro ao registrar Firebase Service Worker:', err);
+        });
     }
 
-    // Carregar Flutter depois
+    // Depois carregar o Flutter
     window.addEventListener('load', function (ev) {
+      // Download main.dart.js
       _flutter.loader.loadEntrypoint({
         serviceWorker: {
           serviceWorkerVersion: serviceWorkerVersion,
