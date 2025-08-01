@@ -1,6 +1,7 @@
 {
-    "buildCommand": "flutter build web --release",
-    "outputDirectory": "build/web",
+    "github": {
+        "silent": true
+    },
     "headers": [
         {
             "source": "/firebase-messaging-sw.js",
