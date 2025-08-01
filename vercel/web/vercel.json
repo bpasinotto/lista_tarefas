@@ -1,0 +1,29 @@
+{
+    "buildCommand": "flutter build web --release",
+    "outputDirectory": "build/web",
+    "headers": [
+        {
+            "source": "/firebase-messaging-sw.js",
+            "headers": [
+                {
+                    "key": "Service-Worker-Allowed",
+                    "value": "/"
+                },
+                {
+                    "key": "Content-Type",
+                    "value": "application/javascript"
+                }
+            ]
+        }
+    ],
+    "routes": [
+        {
+            "src": "/firebase-messaging-sw.js",
+            "dest": "/firebase-messaging-sw.js"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
+        }
+    ]
+}

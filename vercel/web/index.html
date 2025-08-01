@@ -44,20 +44,33 @@
   <div id="loading"></div>
 
   <script>
-    // Primeiro registrar nosso service worker customizado
+    // Registrar service worker customizado
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        .then(function (registration) {
-          console.log('Firebase Service Worker registrado:', registration.scope);
+      window.addEventListener('load', function () {
+        // Usar caminho absoluto para produção
+        const swPath = window.location.origin + '/firebase-messaging-sw.js';
+
+        navigator.serviceWorker.register(swPath, {
+          scope: '/'
         })
-        .catch(function (err) {
-          console.log('Erro ao registrar Firebase Service Worker:', err);
-        });
+          .then(function (registration) {
+            console.log('✅ Firebase Service Worker registrado:', registration.scope);
+
+            // Verificar se está ativo
+            if (registration.active) {
+              console.log('✅ SW está ativo');
+            } else {
+              console.log('⏳ SW ainda não está ativo');
+            }
+          })
+          .catch(function (err) {
+            console.error('❌ Erro ao registrar Firebase Service Worker:', err);
+          });
+      });
     }
 
-    // Depois carregar o Flutter
+    // Carregar Flutter depois
     window.addEventListener('load', function (ev) {
-      // Download main.dart.js
       _flutter.loader.loadEntrypoint({
         serviceWorker: {
           serviceWorkerVersion: serviceWorkerVersion,
