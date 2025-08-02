@@ -85,7 +85,7 @@ class _HomePageState extends State<HomePage> {
         ?.requestNotificationsPermission();
   }
 
-  // Agendamento para PWA - VERSÃO COM LOGS DE DEBUG
+  // Agendamento para PWA - VERSÃO SIMPLIFICADA SEM SERVICE WORKER
   Future<void> _schedulePWANotification(TimeOfDay time) async {
     print('=== FUNÇÃO _schedulePWANotification CHAMADA ===');
     
@@ -109,35 +109,29 @@ class _HomePageState extends State<HomePage> {
     print('DEBUG: Tarefas não concluídas: $uncompletedCount');
     print('DEBUG: Agendado para: $scheduledDate');
 
-    // TESTE SIMPLES: apenas mostrar uma notificação imediata
-    js.context.callMethod('eval', [
-      '''
-      console.log('=== TESTE: EXECUTANDO JAVASCRIPT ===');
-      
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(function(registration) {
-          console.log('SW ready:', registration);
-          
-          // Testar notificação imediata primeiro
-          registration.showNotification('TESTE', {
-            body: 'Esta é uma notificação de teste imediata',
-            icon: '/icons/Icon-192.png'
-          });
-          
-          // Agora tentar enviar mensagem
-          if (registration.active) {
-            console.log('Enviando mensagem para SW...');
-            registration.active.postMessage({
-              type: 'SCHEDULE_NOTIFICATION',
-              title: 'Tarefas Pendentes',
-              body: 'Você tem $uncompletedCount tarefas!',
-              delay: $delay
-            });
-          }
+    // Usar Timer simples - funciona bem para sessões ativas
+    Timer(Duration(milliseconds: delay), () {
+      print('EXECUTANDO NOTIFICAÇÃO TIMER');
+      if (html.Notification.permission == 'granted') {
+        var notification = html.Notification(
+          'Tarefas Pendentes',
+          body: 'Você tem $uncompletedCount tarefas não concluídas para verificar!',
+          icon: '/icons/Icon-192.png',
+          tag: 'tarefas-reminder',
+        );
+        
+        // Auto-fechar após 10 segundos
+        Timer(const Duration(seconds: 10), () {
+          notification.close();
         });
+        
+        print('Notificação exibida via Timer');
+      } else {
+        print('Permissão de notificação não concedida');
       }
-      ''',
-    ]);
+    });
+    
+    print('Timer agendado para ${Duration(milliseconds: delay)}');
   }
 
   // Agendamento para Android/iOS (existente)

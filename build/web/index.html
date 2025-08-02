@@ -34,7 +34,7 @@
   <link rel="manifest" href="manifest.json">
 
   <script>
-    const serviceWorkerVersion = "2630252788";
+    const serviceWorkerVersion = "2645382245";
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
@@ -63,6 +63,14 @@
     }
 
     function loadFlutterApp() {
+      // Solicitar permissão para notificações
+      if ('Notification' in window) {
+        Notification.requestPermission().then((permission) => {
+          console.log('Permissão de notificação:', permission);
+        });
+      }
+
+      // Carregar Flutter
       window.addEventListener('load', function (ev) {
         // Download main.dart.js
         _flutter.loader.loadEntrypoint({
@@ -75,13 +83,6 @@
           return appRunner.runApp();
         });
       });
-
-      // Solicitar permissão para notificações
-      if ('Notification' in window) {
-        Notification.requestPermission().then((permission) => {
-          console.log('Permissão de notificação:', permission);
-        });
-      }
     }
   </script>
 </body>
