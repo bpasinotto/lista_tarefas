@@ -1,23 +1,17 @@
 {
     "buildCommand": "flutter build web --release",
     "outputDirectory": "build/web",
-    "routes": [
-        {
-            "src": "/firebase-messaging-sw.js",
-            "dest": "/firebase-messaging-sw.js",
-            "headers": {
-                "Service-Worker-Allowed": "/",
-                "Cache-Control": "no-cache"
-            }
-        }
-    ],
     "headers": [
         {
-            "source": "/(.*)",
+            "source": "/firebase-messaging-sw.js",
             "headers": [
                 {
-                    "key": "X-Content-Type-Options",
-                    "value": "nosniff"
+                    "key": "Service-Worker-Allowed",
+                    "value": "/"
+                },
+                {
+                    "key": "Cache-Control",
+                    "value": "no-cache"
                 }
             ]
         }
