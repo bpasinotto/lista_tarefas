@@ -34,7 +34,7 @@
   <link rel="manifest" href="manifest.json">
 
   <script>
-    const serviceWorkerVersion = "3472943377";
+    const serviceWorkerVersion = "2310507228";
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
@@ -44,18 +44,27 @@
   <div id="loading"></div>
 
   <script>
-    // Apenas solicitar permissão para notificações
+    // Registrar Service Worker para PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then((registration) => {
+        console.log('Service Worker registrado:', registration);
+      }).catch((error) => {
+        console.log('Erro ao registrar Service Worker:', error);
+      });
+    }
+
+    // Solicitar permissão para notificações
     if ('Notification' in window) {
       Notification.requestPermission().then((permission) => {
         console.log('Permissão de notificação:', permission);
       });
     }
 
-    // Carregar Flutter sem Service Worker
+    // Carregar Flutter
     window.addEventListener('load', function (ev) {
       _flutter.loader.loadEntrypoint({
         serviceWorker: {
-          serviceWorkerVersion: null, // Desabilita o SW automático do Flutter
+          serviceWorkerVersion: serviceWorkerVersion,
         }
       }).then(function (engineInitializer) {
         return engineInitializer.initializeEngine();
