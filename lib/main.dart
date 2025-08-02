@@ -85,8 +85,10 @@ class _HomePageState extends State<HomePage> {
         ?.requestNotificationsPermission();
   }
 
-  // Agendamento para PWA - VERSÃO SIMPLIFICADA
+  // Agendamento para PWA - VERSÃO COM LOGS DE DEBUG
   Future<void> _schedulePWANotification(TimeOfDay time) async {
+    print('=== FUNÇÃO _schedulePWANotification CHAMADA ===');
+    
     final now = DateTime.now();
     var scheduledDate = DateTime(
       now.year,
@@ -107,54 +109,35 @@ class _HomePageState extends State<HomePage> {
     print('DEBUG: Tarefas não concluídas: $uncompletedCount');
     print('DEBUG: Agendado para: $scheduledDate');
 
-    // Usar Service Worker para notificações persistentes
-    if (js.context.hasProperty('navigator') &&
-        js.context['navigator'].hasProperty('serviceWorker')) {
+    // TESTE SIMPLES: apenas mostrar uma notificação imediata
+    js.context.callMethod('eval', [
+      '''
+      console.log('=== TESTE: EXECUTANDO JAVASCRIPT ===');
       
-      print('DEBUG: Service Worker disponível, enviando mensagem...');
-      
-      js.context.callMethod('eval', [
-        '''
-        console.log('DEBUG: Preparando para enviar mensagem ao Firebase SW');
-        if ('serviceWorker' in navigator && 'Notification' in window) {
-          navigator.serviceWorker.ready.then(function(registration) {
-            console.log('DEBUG: Service Worker ready:', registration);
-            
-            if (registration.active) {
-              const message = {
-                type: 'SCHEDULE_NOTIFICATION',
-                title: 'Tarefas Pendentes',
-                body: 'Você tem $uncompletedCount tarefas não concluídas para verificar!',
-                delay: $delay
-              };
-              
-              console.log('DEBUG: Enviando mensagem:', message);
-              registration.active.postMessage(message);
-            } else {
-              console.log('DEBUG: Nenhum SW ativo encontrado');
-            }
-          }).catch(function(error) {
-            console.error('DEBUG: Erro no SW ready:', error);
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(function(registration) {
+          console.log('SW ready:', registration);
+          
+          // Testar notificação imediata primeiro
+          registration.showNotification('TESTE', {
+            body: 'Esta é uma notificação de teste imediata',
+            icon: '/icons/Icon-192.png'
           });
-        } else {
-          console.log('DEBUG: Service Worker ou Notification não disponível');
-        }
-        ''',
-      ]);
-    } else {
-      print('DEBUG: Service Worker não disponível, usando fallback');
-      // Fallback para Timer simples
-      Timer(Duration(milliseconds: delay), () {
-        if (html.Notification.permission == 'granted') {
-          html.Notification(
-            'Tarefas Pendentes',
-            body:
-                'Você tem $uncompletedCount tarefas não concluídas para verificar!',
-            icon: '/icons/Icon-192.png',
-          );
-        }
-      });
-    }
+          
+          // Agora tentar enviar mensagem
+          if (registration.active) {
+            console.log('Enviando mensagem para SW...');
+            registration.active.postMessage({
+              type: 'SCHEDULE_NOTIFICATION',
+              title: 'Tarefas Pendentes',
+              body: 'Você tem $uncompletedCount tarefas!',
+              delay: $delay
+            });
+          }
+        });
+      }
+      ''',
+    ]);
   }
 
   // Agendamento para Android/iOS (existente)
