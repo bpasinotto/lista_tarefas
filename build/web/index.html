@@ -34,7 +34,7 @@
   <link rel="manifest" href="manifest.json">
 
   <script>
-    const serviceWorkerVersion = "2051200369";
+    const serviceWorkerVersion = "2630252788";
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
@@ -44,30 +44,45 @@
   <div id="loading"></div>
 
   <script>
-    // Primeiro registrar nosso service worker customizado
+    // Registrar nosso Service Worker personalizado ANTES do Flutter
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        .then(function (registration) {
-          console.log('Firebase Service Worker registrado:', registration.scope);
+      navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .then((registration) => {
+          console.log('SW personalizado registrado:', registration);
+
+          // Agora carregar o Flutter
+          loadFlutterApp();
         })
-        .catch(function (err) {
-          console.log('Erro ao registrar Firebase Service Worker:', err);
+        .catch((error) => {
+          console.log('Erro no SW personalizado:', error);
+          // Carregar Flutter mesmo se SW falhar
+          loadFlutterApp();
         });
+    } else {
+      loadFlutterApp();
     }
 
-    // Depois carregar o Flutter
-    window.addEventListener('load', function (ev) {
-      // Download main.dart.js
-      _flutter.loader.loadEntrypoint({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        }
-      }).then(function (engineInitializer) {
-        return engineInitializer.initializeEngine();
-      }).then(function (appRunner) {
-        return appRunner.runApp();
+    function loadFlutterApp() {
+      window.addEventListener('load', function (ev) {
+        // Download main.dart.js
+        _flutter.loader.loadEntrypoint({
+          serviceWorker: {
+            serviceWorkerVersion: null, // Desabilita o SW automático do Flutter
+          }
+        }).then(function (engineInitializer) {
+          return engineInitializer.initializeEngine();
+        }).then(function (appRunner) {
+          return appRunner.runApp();
+        });
       });
-    });
+
+      // Solicitar permissão para notificações
+      if ('Notification' in window) {
+        Notification.requestPermission().then((permission) => {
+          console.log('Permissão de notificação:', permission);
+        });
+      }
+    }
   </script>
 </body>
 

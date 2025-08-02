@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:html' as html;
 import 'dart:js' as js;
-import 'dart:async'; // Adicione esta linha
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -185,13 +185,19 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Função unificada para agendamento
+  // Função unificada para agendamento - CORRIGIR ESTA FUNÇÃO
   Future<void> _scheduleNotificationPlatform(TimeOfDay time) async {
+    print('=== _scheduleNotificationPlatform CHAMADA ===');
+    print('kIsWeb: $kIsWeb');
+    
     if (kIsWeb) {
+      print('Chamando _schedulePWANotification...');
       await _schedulePWANotification(time);
     } else {
+      print('Chamando _scheduleNotification...');
       await _scheduleNotification(time);
     }
+    print('_scheduleNotificationPlatform FINALIZADA');
   }
 
   void add() {
@@ -305,13 +311,10 @@ class _HomePageState extends State<HomePage> {
                 TimeOfDay? selectedTime = await showTimePicker(
                   context: context,
                   initialTime: TimeOfDay.now(),
-                  helpText:
-                      'Selecione um horário para ser lembrado das tarefas',
+                  helpText: 'Selecione um horário para ser lembrado das tarefas',
                   builder: (BuildContext context, Widget? child) {
                     return MediaQuery(
-                      data: MediaQuery.of(
-                        context,
-                      ).copyWith(alwaysUse24HourFormat: true),
+                      data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
                       child: child!,
                     );
                   },
@@ -323,20 +326,22 @@ class _HomePageState extends State<HomePage> {
                   print('Hora selecionada: $formattedTime');
 
                   bool hasUncompletedTasks = items.any((item) => !item.done);
+                  print('Tem tarefas não concluídas: $hasUncompletedTasks');
+                  print('Total de tarefas: ${items.length}');
 
                   if (hasUncompletedTasks) {
+                    print('CHAMANDO _scheduleNotificationPlatform...');
                     // Usar função unificada
                     await _scheduleNotificationPlatform(selectedTime);
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(
-                          'Notificação agendada para $formattedTime',
-                        ),
+                        content: Text('Notificação agendada para $formattedTime'),
                         backgroundColor: Colors.green,
                       ),
                     );
                   } else {
+                    print('Todas as tarefas estão concluídas - não agendando notificação');
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Todas as tarefas estão concluídas!'),

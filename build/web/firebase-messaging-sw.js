@@ -1,10 +1,12 @@
+console.log('Firebase SW carregado com funcionalidades personalizadas');
+
 self.addEventListener('install', function (event) {
-    console.log('Service Worker instalado');
+    console.log('Firebase SW instalado');
     self.skipWaiting();
 });
 
 self.addEventListener('activate', function (event) {
-    console.log('Service Worker ativado');
+    console.log('Firebase SW ativado');
     event.waitUntil(self.clients.claim());
 });
 
@@ -12,12 +14,15 @@ self.addEventListener('activate', function (event) {
 let scheduledTimeouts = [];
 
 self.addEventListener('message', function (event) {
-    console.log('Mensagem recebida no SW:', event.data);
+    console.log('=== MENSAGEM RECEBIDA NO FIREBASE SW ===');
+    console.log('Event:', event);
+    console.log('Data:', event.data);
+    console.log('Type:', event.data?.type);
 
     if (event.data && event.data.type === 'SCHEDULE_NOTIFICATION') {
         const { title, body, delay } = event.data;
 
-        console.log('Agendando notificação para', delay, 'ms');
+        console.log('Agendando notificação:', { title, body, delay });
 
         // Cancelar notificações anteriores
         scheduledTimeouts.forEach(timeout => clearTimeout(timeout));
@@ -25,6 +30,7 @@ self.addEventListener('message', function (event) {
 
         // Agendar nova notificação
         const timeoutId = setTimeout(() => {
+            console.log('EXECUTANDO NOTIFICAÇÃO:', title);
             self.registration.showNotification(title, {
                 body: body,
                 icon: '/icons/Icon-192.png',
@@ -44,11 +50,12 @@ self.addEventListener('message', function (event) {
                     }
                 ]
             });
-            
-            console.log('Notificação mostrada:', title);
         }, delay);
 
         scheduledTimeouts.push(timeoutId);
+        console.log('Timeout agendado com ID:', timeoutId);
+    } else {
+        console.log('Mensagem ignorada - tipo não reconhecido');
     }
 });
 
