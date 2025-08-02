@@ -85,7 +85,7 @@ class _HomePageState extends State<HomePage> {
         ?.requestNotificationsPermission();
   }
 
-  // Agendamento para PWA
+  // Agendamento para PWA - SUBSTITUA a função existente
   Future<void> _schedulePWANotification(TimeOfDay time) async {
     final now = DateTime.now();
     var scheduledDate = DateTime(
@@ -103,24 +103,69 @@ class _HomePageState extends State<HomePage> {
     final delay = scheduledDate.difference(now).inMilliseconds;
     final uncompletedCount = items.where((item) => !item.done).length;
 
+    print('DEBUG: Delay calculado: $delay ms');
+    print('DEBUG: Tarefas não concluídas: $uncompletedCount');
+    print('DEBUG: Agendado para: $scheduledDate');
+
     // Usar Service Worker para notificações persistentes
     if (js.context.hasProperty('navigator') &&
         js.context['navigator'].hasProperty('serviceWorker')) {
+      
+      print('DEBUG: Service Worker disponível, enviando mensagem...');
+      
       js.context.callMethod('eval', [
         '''
+        console.log('DEBUG: Preparando para enviar mensagem ao SW personalizado');
         if ('serviceWorker' in navigator && 'Notification' in window) {
-          navigator.serviceWorker.ready.then(function(registration) {
-            registration.active.postMessage({
-              type: 'SCHEDULE_NOTIFICATION',
-              title: 'Tarefas Pendentes',
-              body: 'Você tem $uncompletedCount tarefas não concluídas para verificar!',
-              delay: $delay
-            });
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            console.log('DEBUG: Registrations encontradas:', registrations);
+            
+            // Procurar pelo nosso SW personalizado (sw.js)
+            const customSW = registrations.find(reg => 
+              reg.scope.includes('/') && 
+              reg.active && 
+              reg.active.scriptURL.includes('sw.js')
+            );
+            
+            if (customSW && customSW.active) {
+              console.log('DEBUG: Usando SW personalizado:', customSW);
+              
+              const message = {
+                type: 'SCHEDULE_NOTIFICATION',
+                title: 'Tarefas Pendentes',
+                body: 'Você tem $uncompletedCount tarefas não concluídas para verificar!',
+                delay: $delay
+              };
+              
+              console.log('DEBUG: Enviando mensagem:', message);
+              customSW.active.postMessage(message);
+            } else {
+              console.log('DEBUG: SW personalizado não encontrado, tentando qualquer SW ativo');
+              // Fallback: tentar qualquer SW ativo
+              const anySW = registrations.find(reg => reg.active);
+              if (anySW && anySW.active) {
+                console.log('DEBUG: Usando SW fallback:', anySW);
+                const message = {
+                  type: 'SCHEDULE_NOTIFICATION',
+                  title: 'Tarefas Pendentes',
+                  body: 'Você tem $uncompletedCount tarefas não concluídas para verificar!',
+                  delay: $delay
+                };
+                anySW.active.postMessage(message);
+              } else {
+                console.log('DEBUG: Nenhum SW ativo encontrado');
+              }
+            }
+          }).catch(function(error) {
+            console.error('DEBUG: Erro ao buscar registrations:', error);
           });
+        } else {
+          console.log('DEBUG: Service Worker ou Notification não disponível');
         }
-      ''',
+        ''',
       ]);
     } else {
+      print('DEBUG: Service Worker não disponível, usando fallback');
       // Fallback para Timer simples
       Timer(Duration(milliseconds: delay), () {
         if (html.Notification.permission == 'granted') {
