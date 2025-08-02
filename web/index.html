@@ -44,46 +44,25 @@
   <div id="loading"></div>
 
   <script>
-    // Registrar nosso Service Worker personalizado ANTES do Flutter
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' })
-        .then((registration) => {
-          console.log('SW personalizado registrado:', registration);
-
-          // Agora carregar o Flutter
-          loadFlutterApp();
-        })
-        .catch((error) => {
-          console.log('Erro no SW personalizado:', error);
-          // Carregar Flutter mesmo se SW falhar
-          loadFlutterApp();
-        });
-    } else {
-      loadFlutterApp();
-    }
-
-    function loadFlutterApp() {
-      // Solicitar permissão para notificações
-      if ('Notification' in window) {
-        Notification.requestPermission().then((permission) => {
-          console.log('Permissão de notificação:', permission);
-        });
-      }
-
-      // Carregar Flutter
-      window.addEventListener('load', function (ev) {
-        // Download main.dart.js
-        _flutter.loader.loadEntrypoint({
-          serviceWorker: {
-            serviceWorkerVersion: null, // Desabilita o SW automático do Flutter
-          }
-        }).then(function (engineInitializer) {
-          return engineInitializer.initializeEngine();
-        }).then(function (appRunner) {
-          return appRunner.runApp();
-        });
+    // Apenas solicitar permissão para notificações
+    if ('Notification' in window) {
+      Notification.requestPermission().then((permission) => {
+        console.log('Permissão de notificação:', permission);
       });
     }
+
+    // Carregar Flutter sem Service Worker
+    window.addEventListener('load', function (ev) {
+      _flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: null, // Desabilita o SW automático do Flutter
+        }
+      }).then(function (engineInitializer) {
+        return engineInitializer.initializeEngine();
+      }).then(function (appRunner) {
+        return appRunner.runApp();
+      });
+    });
   </script>
 </body>
 

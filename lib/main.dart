@@ -85,7 +85,7 @@ class _HomePageState extends State<HomePage> {
         ?.requestNotificationsPermission();
   }
 
-  // Agendamento para PWA - VERSÃO SIMPLIFICADA SEM SERVICE WORKER
+  // Agendamento para PWA - APENAS TIMER
   Future<void> _schedulePWANotification(TimeOfDay time) async {
     print('=== FUNÇÃO _schedulePWANotification CHAMADA ===');
     
@@ -109,7 +109,7 @@ class _HomePageState extends State<HomePage> {
     print('DEBUG: Tarefas não concluídas: $uncompletedCount');
     print('DEBUG: Agendado para: $scheduledDate');
 
-    // Usar Timer simples - funciona bem para sessões ativas
+    // Usar apenas Timer - sem Service Worker
     Timer(Duration(milliseconds: delay), () {
       print('EXECUTANDO NOTIFICAÇÃO TIMER');
       if (html.Notification.permission == 'granted') {
