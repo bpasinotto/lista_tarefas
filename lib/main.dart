@@ -85,7 +85,7 @@ class _HomePageState extends State<HomePage> {
         ?.requestNotificationsPermission();
   }
 
-  // Agendamento para PWA - SUBSTITUA a função existente
+  // Agendamento para PWA - VERSÃO SIMPLIFICADA
   Future<void> _schedulePWANotification(TimeOfDay time) async {
     final now = DateTime.now();
     var scheduledDate = DateTime(
@@ -115,21 +115,12 @@ class _HomePageState extends State<HomePage> {
       
       js.context.callMethod('eval', [
         '''
-        console.log('DEBUG: Preparando para enviar mensagem ao SW personalizado');
+        console.log('DEBUG: Preparando para enviar mensagem ao Firebase SW');
         if ('serviceWorker' in navigator && 'Notification' in window) {
-          navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            console.log('DEBUG: Registrations encontradas:', registrations);
+          navigator.serviceWorker.ready.then(function(registration) {
+            console.log('DEBUG: Service Worker ready:', registration);
             
-            // Procurar pelo nosso SW personalizado (sw.js)
-            const customSW = registrations.find(reg => 
-              reg.scope.includes('/') && 
-              reg.active && 
-              reg.active.scriptURL.includes('sw.js')
-            );
-            
-            if (customSW && customSW.active) {
-              console.log('DEBUG: Usando SW personalizado:', customSW);
-              
+            if (registration.active) {
               const message = {
                 type: 'SCHEDULE_NOTIFICATION',
                 title: 'Tarefas Pendentes',
@@ -138,26 +129,12 @@ class _HomePageState extends State<HomePage> {
               };
               
               console.log('DEBUG: Enviando mensagem:', message);
-              customSW.active.postMessage(message);
+              registration.active.postMessage(message);
             } else {
-              console.log('DEBUG: SW personalizado não encontrado, tentando qualquer SW ativo');
-              // Fallback: tentar qualquer SW ativo
-              const anySW = registrations.find(reg => reg.active);
-              if (anySW && anySW.active) {
-                console.log('DEBUG: Usando SW fallback:', anySW);
-                const message = {
-                  type: 'SCHEDULE_NOTIFICATION',
-                  title: 'Tarefas Pendentes',
-                  body: 'Você tem $uncompletedCount tarefas não concluídas para verificar!',
-                  delay: $delay
-                };
-                anySW.active.postMessage(message);
-              } else {
-                console.log('DEBUG: Nenhum SW ativo encontrado');
-              }
+              console.log('DEBUG: Nenhum SW ativo encontrado');
             }
           }).catch(function(error) {
-            console.error('DEBUG: Erro ao buscar registrations:', error);
+            console.error('DEBUG: Erro no SW ready:', error);
           });
         } else {
           console.log('DEBUG: Service Worker ou Notification não disponível');
