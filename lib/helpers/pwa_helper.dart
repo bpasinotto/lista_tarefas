@@ -7,10 +7,10 @@ class PwaHelper {
   // Verifica se está rodando como PWA
   static bool get isPwa {
     if (!kIsWeb) return false;
-    
+
     try {
       return js.context['navigator']['standalone'] == true ||
-             html.window.matchMedia('(display-mode: standalone)').matches;
+          html.window.matchMedia('(display-mode: standalone)').matches;
     } catch (e) {
       return false;
     }
@@ -42,7 +42,12 @@ class PwaHelper {
   }
 
   // Agenda notificação via Service Worker
-  static void scheduleWebNotification(int hour, int minute, String title, String body) {
+  static void scheduleWebNotification(
+    int hour,
+    int minute,
+    String title,
+    String body,
+  ) {
     if (!kIsWeb) return;
 
     try {
@@ -65,7 +70,7 @@ class PwaHelper {
             'minute': minute,
             'title': title,
             'body': body,
-          })
+          }),
         ]);
       }
     } catch (e) {
@@ -76,24 +81,29 @@ class PwaHelper {
   }
 
   // Agenda via setTimeout (funciona enquanto aba estiver aberta)
-  static void _scheduleViaTimeout(int hour, int minute, String title, String body) {
+  static void _scheduleViaTimeout(
+    int hour,
+    int minute,
+    String title,
+    String body,
+  ) {
     try {
       final now = DateTime.now();
       var scheduled = DateTime(now.year, now.month, now.day, hour, minute);
-      
+
       // Se já passou hoje, agenda para amanhã
       if (scheduled.isBefore(now)) {
         scheduled = scheduled.add(const Duration(days: 1));
       }
 
       final delay = scheduled.difference(now).inMilliseconds;
-      
+
       // Agenda notificação
       js.context.callMethod('setTimeout', [
         js.allowInterop(() {
           showWebNotification(title, body);
         }),
-        delay
+        delay,
       ]);
 
       print('Notificação agendada para $hour:$minute (delay: ${delay}ms)');
@@ -123,7 +133,7 @@ class PwaHelper {
           'tag': 'lista-tarefas',
           'renotify': true,
           'requireInteraction': false,
-        })
+        }),
       ]);
 
       // Auto-close após 5 segundos
@@ -131,7 +141,7 @@ class PwaHelper {
         js.allowInterop(() {
           notification.callMethod('close');
         }),
-        5000
+        5000,
       ]);
 
       print('Notificação web mostrada: $title');
@@ -154,7 +164,7 @@ class PwaHelper {
   // Verifica se notificações são suportadas
   static bool get notificationsSupported {
     if (!kIsWeb) return true;
-    
+
     try {
       return js.context['Notification'] != null;
     } catch (e) {
@@ -173,7 +183,7 @@ class PwaHelper {
   // Verifica status da permissão atual
   static String getPermissionStatus() {
     if (!kIsWeb) return 'granted';
-    
+
     try {
       return js.context['Notification']['permission'] ?? 'default';
     } catch (e) {

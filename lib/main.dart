@@ -7,10 +7,10 @@ import 'pages/notification_settings_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Inicializa o serviço de notificações
   await NotificationService.init();
-  
+
   runApp(App());
 }
 

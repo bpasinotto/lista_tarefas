@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Teste de Notificações - Lista de Tarefas</title>
     <meta charset="UTF-8">
@@ -12,13 +13,15 @@
             padding: 20px;
             background: #f5f5f5;
         }
+
         .card {
             background: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             margin: 20px 0;
         }
+
         button {
             background: #2196F3;
             color: white;
@@ -28,27 +31,47 @@
             cursor: pointer;
             margin: 5px;
         }
+
         button:hover {
             background: #1976D2;
         }
+
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
         }
+
         .status {
             padding: 10px;
             border-radius: 4px;
             margin: 10px 0;
         }
-        .success { background: #e8f5e8; color: #4caf50; }
-        .error { background: #ffe8e8; color: #f44336; }
-        .warning { background: #fff3e0; color: #ff9800; }
-        .info { background: #e3f2fd; color: #2196f3; }
+
+        .success {
+            background: #e8f5e8;
+            color: #4caf50;
+        }
+
+        .error {
+            background: #ffe8e8;
+            color: #f44336;
+        }
+
+        .warning {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        .info {
+            background: #e3f2fd;
+            color: #2196f3;
+        }
     </style>
 </head>
+
 <body>
     <h1>🔔 Teste de Notificações PWA</h1>
-    
+
     <div class="card">
         <h3>Status do Sistema</h3>
         <div id="status" class="status info">Verificando suporte...</div>
@@ -78,7 +101,9 @@
 
     <div class="card">
         <h3>Logs</h3>
-        <div id="logs" style="background: #f0f0f0; padding: 10px; border-radius: 4px; height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px;"></div>
+        <div id="logs"
+            style="background: #f0f0f0; padding: 10px; border-radius: 4px; height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px;">
+        </div>
         <button onclick="clearLogs()">🗑️ Limpar Logs</button>
     </div>
 
@@ -101,7 +126,7 @@
 
         function checkSupport() {
             log('Verificando suporte a notificações...');
-            
+
             if (!('Notification' in window)) {
                 updateStatus('status', '❌ Notificações não suportadas', 'error');
                 log('ERRO: Notification API não está disponível');
@@ -119,8 +144,8 @@
             // Verifica permissão atual
             const permission = Notification.permission;
             log(`Permissão atual: ${permission}`);
-            
-            switch(permission) {
+
+            switch (permission) {
                 case 'granted':
                     updateStatus('permission', '✅ Permissão concedida', 'success');
                     break;
@@ -137,14 +162,14 @@
 
         async function requestPermission() {
             log('Solicitando permissão para notificações...');
-            
+
             if (!checkSupport()) return;
 
             try {
                 const permission = await Notification.requestPermission();
                 log(`Resultado da permissão: ${permission}`);
-                
-                switch(permission) {
+
+                switch (permission) {
                     case 'granted':
                         updateStatus('permission', '✅ Permissão concedida!', 'success');
                         break;
@@ -162,7 +187,7 @@
 
         function showTestNotification() {
             log('Mostrando notificação de teste...');
-            
+
             if (Notification.permission !== 'granted') {
                 log('ERRO: Permissão não concedida');
                 alert('Primeiro solicite permissão para notificações!');
@@ -177,16 +202,16 @@
                     requireInteraction: false
                 });
 
-                notification.onclick = function() {
+                notification.onclick = function () {
                     log('Notificação de teste clicada');
                     notification.close();
                 };
 
-                notification.onshow = function() {
+                notification.onshow = function () {
                     log('Notificação de teste mostrada com sucesso');
                 };
 
-                notification.onerror = function() {
+                notification.onerror = function () {
                     log('ERRO ao mostrar notificação de teste');
                 };
 
@@ -203,7 +228,7 @@
 
         function scheduleTest() {
             log('Agendando notificação para 10 segundos...');
-            
+
             if (Notification.permission !== 'granted') {
                 alert('Primeiro solicite permissão para notificações!');
                 return;
@@ -223,7 +248,7 @@
             const countdownInterval = setInterval(() => {
                 countdown--;
                 updateStatus('scheduleStatus', `⏳ Aguardando ${countdown} segundos...`, 'info');
-                
+
                 if (countdown <= 0) {
                     clearInterval(countdownInterval);
                 }
@@ -231,7 +256,7 @@
 
             testTimeout = setTimeout(() => {
                 log('Mostrando notificação agendada');
-                
+
                 const notification = new Notification('⏰ Notificação Agendada', {
                     body: 'Esta notificação foi agendada há 10 segundos!',
                     icon: '/favicon.png',
@@ -240,8 +265,8 @@
                 });
 
                 updateStatus('scheduleStatus', '✅ Notificação agendada mostrada!', 'success');
-                
-                notification.onclick = function() {
+
+                notification.onclick = function () {
                     log('Notificação agendada clicada');
                     notification.close();
                 };
@@ -265,7 +290,7 @@
 
         async function registerSW() {
             log('Registrando Service Worker...');
-            
+
             if (!('serviceWorker' in navigator)) {
                 updateStatus('swStatus', '❌ Service Worker não suportado', 'error');
                 log('ERRO: Service Worker não está disponível');
@@ -296,7 +321,7 @@
         window.addEventListener('load', () => {
             log('Página carregada, iniciando verificações...');
             checkSupport();
-            
+
             // Verifica Service Worker automaticamente
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistration().then(registration => {
@@ -322,4 +347,5 @@
         });
     </script>
 </body>
+
 </html>

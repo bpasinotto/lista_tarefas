@@ -13,7 +13,7 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  static final FlutterLocalNotificationsPlugin _notifications = 
+  static final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
 
   static bool _initialized = false;
@@ -26,7 +26,9 @@ class NotificationService {
     tz.initializeTimeZones();
 
     // Configurações para Android
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
 
     // Configurações para iOS
     const iosSettings = DarwinInitializationSettings(
@@ -76,12 +78,9 @@ class NotificationService {
     if (Platform.isIOS) {
       final status = await _notifications
           .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
+            IOSFlutterLocalNotificationsPlugin
+          >()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
       return status ?? false;
     }
 
@@ -94,7 +93,7 @@ class NotificationService {
       print('Notificações não suportadas neste navegador');
       return false;
     }
-    
+
     return await PwaHelper.requestNotificationPermission();
   }
 
@@ -140,7 +139,14 @@ class NotificationService {
 
     // Calcula o próximo horário de notificação
     final now = tz.TZDateTime.now(tz.local);
-    var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    var scheduledDate = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
 
     // Se o horário já passou hoje, agenda para amanhã
     if (scheduledDate.isBefore(now)) {
@@ -164,17 +170,17 @@ class NotificationService {
 
   // Agenda notificação para Web/PWA
   static Future<void> _scheduleWebNotification(
-    int hour, 
-    int minute, 
-    String title, 
-    String body
+    int hour,
+    int minute,
+    String title,
+    String body,
   ) async {
     // Para PWA, salva as configurações e usa o service worker
     await _saveNotificationSettings(hour, minute, true);
-    
+
     // Usa o helper PWA para agendar via Service Worker
     PwaHelper.scheduleWebNotification(hour, minute, title, body);
-    
+
     print('Notificação PWA configurada para $hour:$minute');
   }
 
@@ -192,7 +198,11 @@ class NotificationService {
   }
 
   // Salva configurações de notificação
-  static Future<void> _saveNotificationSettings(int hour, int minute, bool enabled) async {
+  static Future<void> _saveNotificationSettings(
+    int hour,
+    int minute,
+    bool enabled,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('notification_hour', hour);
     await prefs.setInt('notification_minute', minute);
@@ -213,7 +223,7 @@ class NotificationService {
   static Future<int> getPendingTasksCount() async {
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString('data');
-    
+
     if (data != null) {
       try {
         final List<dynamic> decoded = json.decode(data);
@@ -228,7 +238,7 @@ class NotificationService {
   // Mostra notificação imediata (para teste)
   static Future<void> showTestNotification() async {
     await init();
-    
+
     if (kIsWeb) {
       final success = await PwaHelper.testNotification();
       if (!success) {

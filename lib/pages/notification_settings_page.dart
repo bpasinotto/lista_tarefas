@@ -7,7 +7,8 @@ class NotificationSettingsPage extends StatefulWidget {
   const NotificationSettingsPage({super.key});
 
   @override
-  State<NotificationSettingsPage> createState() => _NotificationSettingsPageState();
+  State<NotificationSettingsPage> createState() =>
+      _NotificationSettingsPageState();
 }
 
 class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
@@ -84,7 +85,9 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Notificação agendada para ${_formatTime(_selectedHour, _selectedMinute)}'),
+        content: Text(
+          'Notificação agendada para ${_formatTime(_selectedHour, _selectedMinute)}',
+        ),
         backgroundColor: Colors.green,
       ),
     );
@@ -99,7 +102,9 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Para receber notificações, você precisa conceder permissão.'),
+            const Text(
+              'Para receber notificações, você precisa conceder permissão.',
+            ),
             const SizedBox(height: 16),
             if (kIsWeb)
               const Text(
@@ -179,13 +184,15 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       platform = 'PWA/Web';
       if (!PwaHelper.notificationsSupported) {
         permissionStatus = ' (Não suportado neste navegador)';
-        limitations = '• Notification API não está disponível\n'
+        limitations =
+            '• Notification API não está disponível\n'
             '• Tente um navegador mais recente\n'
             '• Chrome, Firefox, Edge são recomendados';
       } else {
         final status = PwaHelper.getPermissionStatus();
         permissionStatus = ' (Status: $status)';
-        limitations = '• Funciona apenas com navegador aberto\n'
+        limitations =
+            '• Funciona apenas com navegador aberto\n'
             '• Limitações no iOS Safari\n'
             '• Requer permissão do usuário\n'
             '• Use "Adicionar à tela inicial" para melhor experiência';
@@ -194,17 +201,20 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       platform = Theme.of(context).platform.name;
       switch (Theme.of(context).platform) {
         case TargetPlatform.android:
-          limitations = '• Funciona em segundo plano\n'
+          limitations =
+              '• Funciona em segundo plano\n'
               '• Pode ser limitado por otimizações de bateria\n'
               '• Android 13+ requer permissão explícita';
           break;
         case TargetPlatform.iOS:
-          limitations = '• Funciona em segundo plano\n'
+          limitations =
+              '• Funciona em segundo plano\n'
               '• Limitado a 64 notificações agendadas\n'
               '• Usuário pode desabilitar nas configurações';
           break;
         default:
-          limitations = '• Suporte limitado\n'
+          limitations =
+              '• Suporte limitado\n'
               '• Pode não funcionar em segundo plano';
       }
     }
@@ -256,7 +266,9 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
-              color: _permissionGranted ? Colors.green.shade50 : Colors.red.shade50,
+              color: _permissionGranted
+                  ? Colors.green.shade50
+                  : Colors.red.shade50,
               child: Row(
                 children: [
                   Icon(
@@ -265,8 +277,8 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    _permissionGranted 
-                        ? 'Permissões concedidas' 
+                    _permissionGranted
+                        ? 'Permissões concedidas'
                         : 'Permissões necessárias',
                     style: TextStyle(
                       color: _permissionGranted ? Colors.green : Colors.red,
@@ -296,7 +308,9 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   // Seleção de horário
                   ListTile(
                     title: const Text('Horário do Lembrete'),
-                    subtitle: Text('Notificação às ${_formatTime(_selectedHour, _selectedMinute)}'),
+                    subtitle: Text(
+                      'Notificação às ${_formatTime(_selectedHour, _selectedMinute)}',
+                    ),
                     trailing: const Icon(Icons.access_time),
                     onTap: _notificationsEnabled ? _showTimePicker : null,
                     enabled: _notificationsEnabled,
@@ -307,7 +321,9 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   // Botão de teste
                   ListTile(
                     title: const Text('Testar Notificação'),
-                    subtitle: const Text('Enviar uma notificação de teste agora'),
+                    subtitle: const Text(
+                      'Enviar uma notificação de teste agora',
+                    ),
                     trailing: const Icon(Icons.send),
                     onTap: _permissionGranted ? _testNotification : null,
                     enabled: _permissionGranted,
